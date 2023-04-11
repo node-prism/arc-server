@@ -40,11 +40,11 @@ export class Gate {
     refreshTokens: Collection<{ username: string, accessToken: string, refreshToken: string }>;
   }> = {};
 
-  static init() {
+  static init(host = "localhost", port = 3351, secure = false) {
     this.queryHandler = new QueryHandler();
     this.initializeCollections();
     this.ensureRootUserExists();
-    this.createServer();
+    this.createServer(host, port, secure);
   }
 
   static initializeCollections() {
@@ -78,10 +78,10 @@ export class Gate {
     }
   }
 
-  private static createServer() {
+  private static createServer(host: string, port: number, secure: boolean) {
     this.duplex = new CommandServer({
-      host: "localhost",
-      port: 3351,
+      host,
+      port,
       secure: false,
     });
 
