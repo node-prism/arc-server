@@ -1,3 +1,3 @@
-import { Gate } from "./gate";
+import { ArcServer } from "./server";
 
-export { Gate };
+export { ArcServer };

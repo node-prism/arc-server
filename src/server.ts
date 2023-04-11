@@ -31,7 +31,7 @@ type RefreshPayload = {
   refreshToken: string;
 };
 
-export class Gate {
+export class ArcServer {
   static queryHandler: QueryHandler;
   static duplex: CommandServer;
   static auth: Partial<{
@@ -40,7 +40,7 @@ export class Gate {
     refreshTokens: Collection<{ username: string, accessToken: string, refreshToken: string }>;
   }> = {};
 
-  static init(host = "localhost", port = 3351, secure = false) {
+  static init({ host = "localhost", port = 3351, secure = false }: { host: string, port: number, secure: boolean }) {
     this.queryHandler = new QueryHandler();
     this.initializeCollections();
     this.ensureRootUserExists();
