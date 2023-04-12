@@ -1,11 +1,22 @@
 {
   "compilerOptions": {
-    "module": "es2022",
-    "target": "esnext",
-    "outDir": "lib",
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "declaration": false
-  }
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": [
+      "ESNext"
+    ],
+    "declaration": true,
+    "declarationDir": "./types",
+    "resolveJsonModule": true,
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true
+  },
+  "exclude": [
+    "./types"
+  ],
+  "include": [
+    "./src"
+  ]
 }
-

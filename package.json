@@ -1,26 +1,35 @@
 {
   "name": "@prsm/arc-server",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "",
-  "main": "lib/index.js",
+  "author": "nvms",
   "type": "module",
+  "main": "lib/index.js",
+  "license": "ISC",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
+  "exports": {
+    ".": {
+      "require": "./lib/index.cjs.js",
+      "import": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "esbuild-wrapper build",
+    "run": "esbuild-wrapper run",
+    "serve": "esbuild-wrapper serve",
     "dev": "tsx watch src/index.ts"
   },
-  "keywords": [],
-  "author": "nvms",
-  "license": "ISC",
   "dependencies": {
     "@prsm/arc": "^2.2.3",
     "@prsm/duplex": "^1.1.4",
     "ecdsa-sig-formatter": "^1.0.11"
   },
   "devDependencies": {
+    "esbuild-wrapper": "github:nvms/esbuild-wrapper",
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
