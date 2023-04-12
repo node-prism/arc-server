@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@prsm/arc': ^2.2.3
-  '@prsm/duplex': ^1.1.4
+  '@prsm/duplex': ^1.1.5
   '@types/node': ^18.11.18
   '@typescript-eslint/eslint-plugin': ^5.48.2
   '@typescript-eslint/parser': ^5.48.2
@@ -13,7 +13,7 @@ specifiers:
 
 dependencies:
   '@prsm/arc': 2.2.3
-  '@prsm/duplex': 1.1.4
+  '@prsm/duplex': 1.1.5
   ecdsa-sig-formatter: 1.0.11
 
 devDependencies:
@@ -343,8 +343,8 @@ packages:
       lodash: 4.17.21
     dev: false
 
-  /@prsm/duplex/1.1.4:
-    resolution: {integrity: sha512-PV8fQARHcsyksYE7a7oCvrqhtecxveXvT+oCMlgFSzULWwYxwlu0Yc4F7VsSFwsUsfQP2ejSmYGbUsoLbmiqaw==}
+  /@prsm/duplex/1.1.5:
+    resolution: {integrity: sha512-3RyC8qCSximwWsZzR0ojV/0IILTCp9ZHisc9nc0yV3SzKcFSFxLYvXjEZykbwkhPCPNRjUdDth5QE2FJEUv8xA==}
     dev: false
 
   /@types/json-schema/7.0.11:
