@@ -1,7 +1,7 @@
 import { Collection, CollectionOptions, FSAdapter, QueryOptions } from "@prsm/arc";
 import { CommandServer, Connection } from "@prsm/duplex";
 import { EventEmitter } from "node:events";
-import { CreateAccessToken, CreateRefreshToken, ValidateAccessToken } from "./auth";
+import { CreateAccessToken, ValidateAccessToken } from "./auth";
 import { hash } from "./hasher";
 import { verify } from "./jwt";
 
@@ -30,18 +30,12 @@ type AuthPayload = {
   password: string;
 };
 
-type RefreshPayload = {
-  accessToken: string;
-  refreshToken: string;
-};
-
 export class ArcServer {
   static queryHandler: QueryHandler;
   static duplex: CommandServer;
   static auth: Partial<{
     users: Collection<User>;
     accessTokens: Collection<{ username: string, accessToken: string }>;
-    refreshTokens: Collection<{ username: string, accessToken: string, refreshToken: string }>;
   }> = {};
   static emitter: EventEmitter;
 
@@ -64,12 +58,6 @@ export class ArcServer {
       autosync: true,
       timestamps: true,
       adapter: new FSAdapter(".internal", "accessTokens"),
-    });
-
-    this.auth.refreshTokens = new Collection({
-      autosync: true,
-      timestamps: true,
-      adapter: new FSAdapter(".internal", "refreshTokens"),
     });
   }
 
@@ -136,54 +124,11 @@ export class ArcServer {
       }
 
       const accessToken = CreateAccessToken(payload.username);
-      const refreshToken = CreateRefreshToken(payload.username);
-
-      // store tokens
-      this.auth.refreshTokens.remove({ username: payload.username });
-      this.auth.refreshTokens.insert({ username: payload.username, accessToken, refreshToken });
 
       this.auth.accessTokens.remove({ username: payload.username });
       this.auth.accessTokens.insert({ username: payload.username, accessToken });
 
-      return { accessToken, refreshToken };
-    });
-
-    // refresh tokens
-    this.duplex.command(1, async (payload: RefreshPayload, connection: Connection) => {
-      this.emitter.emit("refresh", { payload, connection });
-      const { accessToken, refreshToken } = payload;
-
-      if (!accessToken || !refreshToken) {
-        return { error: "Invalid access token or refresh token" };
-      }
-
-      const refresh = this.auth.refreshTokens.find({ refreshToken })[0];
-
-      if (!refresh) {
-        return { error: "Invalid refresh token" };
-      }
-
-      if (refresh.accessToken !== accessToken) {
-        return { error: "Refresh token access token mismatch" };
-      }
-
-      const result = verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-
-      if (!result.sig) {
-        return { error: "Invalid refresh token" };
-      }
-
-      const newAccessToken = CreateAccessToken(refresh.username);
-      const newRefreshToken = CreateRefreshToken(refresh.username);
-
-      // store tokens
-      this.auth.refreshTokens.remove({ username: refresh.username });
-      this.auth.refreshTokens.insert({ username: refresh.username, accessToken: newAccessToken, refreshToken: newRefreshToken });
-
-      this.auth.accessTokens.remove({ username: refresh.username });
-      this.auth.accessTokens.insert({ username: refresh.username, accessToken: newAccessToken });
-
-      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+      return { accessToken };
     });
 
     // query

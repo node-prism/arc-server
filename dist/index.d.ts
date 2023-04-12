@@ -25,11 +25,6 @@ declare class ArcServer {
             username: string;
             accessToken: string;
         }>;
-        refreshTokens: Collection<{
-            username: string;
-            accessToken: string;
-            refreshToken: string;
-        }>;
     }>;
     static emitter: EventEmitter;
     static init({ host, port, secure }: {

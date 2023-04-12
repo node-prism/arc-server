@@ -14,7 +14,6 @@ You can listen to command events.
 
 ```typescript
 ArcServer.emitter.on("auth", ({ payload }) => { });
-ArcServer.emitter.on("refresh", ({ payload }) => { });
 ArcServer.emitter.on("query", ({ payload }) => { });
 ArcServer.emitter.on("createUser", ({ payload }) => { });
 ArcServer.emitter.on("removeUser", ({ payload }) => { });
