@@ -1,6 +1,6 @@
 import { Collection, CollectionOptions, FSAdapter, QueryOptions } from "@prsm/arc";
 import { CommandServer, Connection } from "@prsm/duplex";
-import { EventEmitter } from "node:stream";
+import { EventEmitter } from "node:events";
 import { CreateAccessToken, CreateRefreshToken, ValidateAccessToken } from "./auth";
 import { hash } from "./hasher";
 import { verify } from "./jwt";

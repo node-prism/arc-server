@@ -1,6 +1,6 @@
 import { Collection, QueryOptions, CollectionOptions } from '@prsm/arc';
 import { CommandServer, Connection } from '@prsm/duplex';
-import { EventEmitter } from 'node:stream';
+import { EventEmitter } from 'node:events';
 
 interface User {
     id?: string;
