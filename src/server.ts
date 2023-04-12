@@ -1,5 +1,6 @@
 import { Collection, CollectionOptions, FSAdapter, QueryOptions } from "@prsm/arc";
 import { CommandServer, Connection } from "@prsm/duplex";
+import { EventEmitter } from "node:stream";
 import { CreateAccessToken, CreateRefreshToken, ValidateAccessToken } from "./auth";
 import { hash } from "./hasher";
 import { verify } from "./jwt";
@@ -39,8 +40,10 @@ export class ArcServer {
     accessTokens: Collection<{ username: string, accessToken: string }>;
     refreshTokens: Collection<{ username: string, accessToken: string, refreshToken: string }>;
   }> = {};
+  static emitter: EventEmitter;
 
   static init({ host = "localhost", port = 3351, secure = false }: { host: string, port: number, secure: boolean }) {
+    this.emitter = new EventEmitter();
     this.queryHandler = new QueryHandler();
     this.initializeCollections();
     this.ensureRootUserExists();
@@ -110,6 +113,7 @@ export class ArcServer {
 
     // authenticate
     this.duplex.command(0, async (payload: AuthPayload, connection: Connection) => {
+      this.emitter.emit("auth", { payload, connection });
       if (!payload.username || !payload.password) {
         return { error: "Invalid username or password" };
       }
@@ -139,6 +143,7 @@ export class ArcServer {
 
     // refresh tokens
     this.duplex.command(1, async (payload: RefreshPayload, connection: Connection) => {
+      this.emitter.emit("refresh", { payload, connection });
       const { accessToken, refreshToken } = payload;
 
       if (!accessToken || !refreshToken) {
@@ -176,6 +181,7 @@ export class ArcServer {
 
     // query
     this.duplex.command(2, async (payload: QueryPayload, connection: Connection) => {
+      this.emitter.emit("query", { payload, connection });
       const { collection, operation, data, accessToken } = payload;
       if (!ValidateAccessToken(accessToken).valid) return { error: "Invalid access token" };
       return this.queryHandler.query(payload, connection);
@@ -183,6 +189,7 @@ export class ArcServer {
 
     // create user
     this.duplex.command(3, async (payload: { username: string, password: string, accessToken: string }, connection: Connection) => {
+      this.emitter.emit("createUser", { payload, connection });
       const { username, password, accessToken } = payload;
       if (!username || !password) return { error: "Invalid username or password" };
 
@@ -198,6 +205,7 @@ export class ArcServer {
 
     // remove user
     this.duplex.command(4, async (payload: { username: string, password: string, accessToken: string }, connection: Connection) => {
+      this.emitter.emit("removeUser", { payload, connection });
       const { username, password, accessToken } = payload;
 
       if (!username || !password) return { error: "Invalid username or password" };

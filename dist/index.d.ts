@@ -1,5 +1,6 @@
 import { Collection, QueryOptions, CollectionOptions } from '@prsm/arc';
 import { CommandServer, Connection } from '@prsm/duplex';
+import { EventEmitter } from 'node:stream';
 
 interface User {
     id?: string;
@@ -31,6 +32,7 @@ declare class ArcServer {
             refreshToken: string;
         }>;
     }>;
+    static emitter: EventEmitter;
     static init({ host, port, secure }: {
         host: string;
         port: number;
