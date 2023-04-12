@@ -19,6 +19,9 @@ type QueryPayload = {
     operations?: object;
     options?: QueryOptions;
   };
+}
+
+type AuthenticatedQueryPayload = QueryPayload & {
   accessToken: string;
 };
 
@@ -79,6 +82,10 @@ export class ArcServer {
         password: hash.encode("root"),
       });
     }
+  }
+
+  static query(payload: QueryPayload) {
+    return this.queryHandler.query(payload);
   }
 
   private static createUser(username: string, password: string) {
@@ -180,11 +187,11 @@ export class ArcServer {
     });
 
     // query
-    this.duplex.command(2, async (payload: QueryPayload, connection: Connection) => {
+    this.duplex.command(2, async (payload: AuthenticatedQueryPayload, connection: Connection) => {
       this.emitter.emit("query", { payload, connection });
       const { collection, operation, data, accessToken } = payload;
       if (!ValidateAccessToken(accessToken).valid) return { error: "Invalid access token" };
-      return this.queryHandler.query(payload, connection);
+      return this.queryHandler.query(payload);
     });
 
     // create user
@@ -277,7 +284,7 @@ export class QueryHandler {
     this.cm = new CollectionManager();
   }
 
-  query(payload: QueryPayload, connection: Connection) {
+  query(payload: QueryPayload) {
     if (!payload) {
       throw new Error("A payload is required.");
     }

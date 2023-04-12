@@ -1,5 +1,5 @@
 import { Collection, QueryOptions, CollectionOptions } from '@prsm/arc';
-import { CommandServer, Connection } from '@prsm/duplex';
+import { CommandServer } from '@prsm/duplex';
 import { EventEmitter } from 'node:events';
 
 interface User {
@@ -15,7 +15,6 @@ type QueryPayload = {
         operations?: object;
         options?: QueryOptions;
     };
-    accessToken: string;
 };
 declare class ArcServer {
     static queryHandler: QueryHandler;
@@ -40,6 +39,7 @@ declare class ArcServer {
     }): void;
     static initializeCollections(): void;
     private static ensureRootUserExists;
+    static query(payload: QueryPayload): void | unknown[];
     private static createUser;
     private static removeUser;
     private static createServer;
@@ -58,7 +58,7 @@ declare class CollectionManager {
 declare class QueryHandler {
     cm: CollectionManager;
     constructor();
-    query(payload: QueryPayload, connection: Connection): void | unknown[];
+    query(payload: QueryPayload): void | unknown[];
 }
 
 export { ArcServer };
