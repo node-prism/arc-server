@@ -78,6 +78,29 @@ export class ArcServer {
     }
   }
 
+  private static createUser(username: string, password: string) {
+    const user = this.auth.users.find({ username })[0];
+
+    if (user) {
+      throw new Error("User already exists");
+    }
+
+    this.auth.users.insert({
+      username,
+      password: hash.encode(password),
+    });
+  }
+
+  private static removeUser(username: string) {
+    const user = this.auth.users.find({ username })[0];
+
+    if (!user) {
+      throw new Error("User does not exist");
+    }
+
+    this.auth.users.remove({ username });
+  }
+
   private static createServer(host: string, port: number, secure: boolean) {
     this.duplex = new CommandServer({
       host,
@@ -158,7 +181,36 @@ export class ArcServer {
       return this.queryHandler.query(payload, connection);
     });
 
-    console.log("Server created");
+    // create user
+    this.duplex.command(3, async (payload: { username: string, password: string, accessToken: string }, connection: Connection) => {
+      const { username, password, accessToken } = payload;
+      if (!username || !password) return { error: "Invalid username or password" };
+
+      if (!ValidateAccessToken(accessToken).valid) return { error: "Invalid access token" };
+
+      try {
+        ArcServer.createUser(username, password);
+        return { success: true };
+      } catch (error) {
+        return { error: error.message };
+      }
+    });
+
+    // remove user
+    this.duplex.command(4, async (payload: { username: string, password: string, accessToken: string }, connection: Connection) => {
+      const { username, password, accessToken } = payload;
+
+      if (!username || !password) return { error: "Invalid username or password" };
+
+      if (!ValidateAccessToken(accessToken).valid) return { error: "Invalid access token" };
+
+      try {
+        ArcServer.removeUser(username);
+        return { success: true };
+      } catch (error) {
+        return { error: error.message };
+      }
+    });
   }
 }
 
