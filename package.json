@@ -1,6 +1,6 @@
 {
   "name": "@prsm/arc-server",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "",
   "author": "nvms",
   "type": "module",
@@ -22,7 +22,7 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "@prsm/arc": "^2.2.3",
+    "@prsm/arc": "^2.2.4",
     "@prsm/duplex": "^1.1.5",
     "ecdsa-sig-formatter": "^1.0.11"
   },
