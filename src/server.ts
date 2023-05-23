@@ -99,11 +99,11 @@ export class ArcServer {
     this.auth.users.remove({ username });
   }
 
-  private static createServer(host: string, port: number, secure: boolean) {
+  private static createServer(host: string, port: number, secure = false) {
     this.duplex = new CommandServer({
       host,
       port,
-      secure: false,
+      secure,
     });
 
     // authenticate
@@ -134,7 +134,7 @@ export class ArcServer {
     // query
     this.duplex.command(2, async (payload: AuthenticatedQueryPayload, connection: Connection) => {
       this.emitter.emit("query", { payload, connection });
-      const { collection, operation, data, accessToken } = payload;
+      const { accessToken } = payload;
       if (!ValidateAccessToken(accessToken).valid) return { error: "Invalid access token" };
       return this.queryHandler.query(payload);
     });
