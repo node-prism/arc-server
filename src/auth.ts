@@ -14,8 +14,6 @@ export const ValidateAccessToken = (token: string | undefined): { valid: boolean
   return { valid: true };
 };
 
-const int = (s: string) => parseInt(s, 10);
-
 export const CreateAccessToken = (username: string) => {
   const payload = {
     iat: Date.now(),

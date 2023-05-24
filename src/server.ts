@@ -3,7 +3,6 @@ import { CommandServer, Connection } from "@prsm/duplex";
 import { EventEmitter } from "node:events";
 import { CreateAccessToken, ValidateAccessToken } from "./auth";
 import { hash } from "./hasher";
-import { verify } from "./jwt";
 
 interface User {
   id?: string;
