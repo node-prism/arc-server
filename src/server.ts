@@ -1,4 +1,4 @@
-import { Collection, CollectionOptions, FSAdapter, QueryOptions } from "@prsm/arc";
+import { Collection, CollectionOptions, FSAdapter, QueryOptions, ShardedCollection, ShardOptions } from "@prsm/arc";
 import { CommandServer, Connection } from "@prsm/duplex";
 import { EventEmitter } from "node:events";
 import { CreateAccessToken, ValidateAccessToken } from "./auth";
@@ -29,6 +29,13 @@ type AuthPayload = {
   password: string;
 };
 
+export type ArcServerOptions = {
+  host: string;
+  port: number;
+  secure: boolean;
+  shardedCollections?: ShardedCollectionDefinition<unknown>[];
+};
+
 export class ArcServer {
   static queryHandler: QueryHandler;
   static duplex: CommandServer;
@@ -38,9 +45,9 @@ export class ArcServer {
   }> = {};
   static emitter: EventEmitter;
 
-  static init({ host = "localhost", port = 3351, secure = false }: { host: string, port: number, secure: boolean }) {
+  static init({ host = "localhost", port = 3351, secure = false, shardedCollections = [] }: ArcServerOptions) {
     this.emitter = new EventEmitter();
-    this.queryHandler = new QueryHandler();
+    this.queryHandler = new QueryHandler(shardedCollections);
     this.initializeCollections();
     this.ensureRootUserExists();
     this.createServer(host, port, secure);
@@ -50,13 +57,13 @@ export class ArcServer {
     this.auth.users = new Collection({
       autosync: true,
       timestamps: true,
-      adapter: new FSAdapter(".internal", "users"),
+      adapter: new FSAdapter({ storagePath: ".internal", name: "users" }),
     });
 
     this.auth.accessTokens = new Collection({
       autosync: true,
       timestamps: true,
-      adapter: new FSAdapter(".internal", "accessTokens"),
+      adapter: new FSAdapter({ storagePath: ".internal", name: "accessTokens"}),
     });
   }
 
@@ -178,8 +185,17 @@ const defaultCollectionOptions = {
   timestamps: true,
 };
 
+type ShardedCollectionDefinition<T> = {
+  name: string;
+} & ShardOptions<T>;
+
 export class CollectionManager {
-  collections: { [name: string]: { collection: Collection<unknown>; options: CollectionOptions<unknown> } } = {};
+  shardedCollections: ShardedCollectionDefinition<unknown>[] = [];
+  collections: { [name: string]: { collection: Collection<unknown> | ShardedCollection<unknown>; options: CollectionOptions<unknown> | ShardedCollectionDefinition<unknown> } } = {};
+
+  constructor(shardedCollections: ShardedCollectionDefinition<unknown>[] = []) {
+    this.shardedCollections = shardedCollections;
+  }
 
   getCollection(name: string) {
     return this.getOrCreateCollection(name);
@@ -187,15 +203,49 @@ export class CollectionManager {
 
   getOrCreateCollection(name: string) {
     if (!this.collections[name]) {
-      const opts: CollectionOptions<unknown> = {
-        ...defaultCollectionOptions,
-        adapter: new FSAdapter(".data", name),
-      };
 
-      this.collections[name] = {
-        collection: new Collection(opts),
-        options: opts,
-      };
+      const shardedCollection = this.shardedCollections.find((c) => c.name === name);
+
+      if (shardedCollection) {
+        const collectionOptions: CollectionOptions<unknown> = {
+          ...defaultCollectionOptions,
+          adapter: new FSAdapter({ storagePath: ".data", name }),
+        };
+
+        const shardOptions: ShardOptions<unknown> = {
+          ...shardedCollection,
+          adapterOptions: {
+            ...shardedCollection.adapterOptions,
+            storagePath: ".data",
+            name,
+          },
+          // shardKey: "id",
+          // shardCount: 2,
+          // adapter: FSAdapter,
+          // adapterOptions: {
+          //   storagePath: ".data",
+          //   name,
+          // },
+        };
+
+        this.collections[name] = {
+          collection: new ShardedCollection(collectionOptions, shardOptions),
+          options: collectionOptions,
+        };
+
+
+      } else {
+        const opts: CollectionOptions<unknown> = {
+          ...defaultCollectionOptions,
+          adapter: new FSAdapter({ storagePath: ".data", name }),
+        };
+  
+        this.collections[name] = {
+          collection: new Collection(opts),
+          options: opts,
+        };
+      }
+
     }
 
     return this.collections[name].collection;
@@ -209,7 +259,7 @@ export class CollectionManager {
     const opts = {
       ...defaultCollectionOptions,
       ...options,
-      adapter: new FSAdapter(".data", name),
+      adapter: new FSAdapter({ storagePath: ".data", name }),
     };
 
     this.collections[name] = {
@@ -224,8 +274,8 @@ export class CollectionManager {
 export class QueryHandler {
   cm: CollectionManager;
 
-  constructor() {
-    this.cm = new CollectionManager();
+  constructor(shardedCollections: ShardedCollectionDefinition<unknown>[] = []) {
+    this.cm = new CollectionManager(shardedCollections);
   }
 
   query(payload: QueryPayload) {

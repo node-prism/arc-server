@@ -30,3 +30,34 @@ ArcServer.query({
   },
 });
 ```
+
+
+## Sharded collections
+
+Normally, when you query for a collection, the server will create a standard `Collection` instance for you.
+
+If you want to have a `ShardedCollection` instance instead, you can define a `ShardedCollectionDefinition[]` and pass it to the server during `init`.
+
+```typescript
+const shardedCollections = [
+  {
+    // Collection name
+    name: "planets",
+    // The key to shard on
+    shardKey: "planet_name",
+    // How many shards to create
+    shardCount: 3,
+    // The adapter to use (not instantiated, just the class)
+    adapter: FSAdapter,
+    // The options to pass to the adapter when a shard Collection is created
+    adapterOptions: {
+      storagePath: ".data", // where to store the shards
+      name: "planets", // this is the name of the shard files (planets_shard0, etc)
+    },
+  },
+];
+
+ArcServer.init({ ..., shardedCollections });
+```
+
+For an explanation of the above options, see [`ShardedCollectionDefinition`](https://github.com/node-prism/arc-server/blob/fe2d4e6efb7be2544ebd6ae1c7470f7c200c7a8e/src/server.ts#L188-L190)
