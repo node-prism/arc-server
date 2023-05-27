@@ -1,4 +1,4 @@
-import { Collection, QueryOptions, CollectionOptions } from '@prsm/arc';
+import { Collection, QueryOptions, ShardOptions, ShardedCollection, CollectionOptions } from '@prsm/arc';
 import { CommandServer } from '@prsm/duplex';
 import { EventEmitter } from 'node:events';
 
@@ -16,6 +16,12 @@ type QueryPayload = {
         options?: QueryOptions;
     };
 };
+type ArcServerOptions = {
+    host: string;
+    port: number;
+    secure: boolean;
+    shardedCollections?: ShardedCollectionDefinition<unknown>[];
+};
 declare class ArcServer {
     static queryHandler: QueryHandler;
     static duplex: CommandServer;
@@ -27,11 +33,7 @@ declare class ArcServer {
         }>;
     }>;
     static emitter: EventEmitter;
-    static init({ host, port, secure }: {
-        host: string;
-        port: number;
-        secure: boolean;
-    }): void;
+    static init({ host, port, secure, shardedCollections }: ArcServerOptions): void;
     static initializeCollections(): void;
     private static ensureRootUserExists;
     static query(payload: QueryPayload): void | unknown[];
@@ -39,20 +41,25 @@ declare class ArcServer {
     private static removeUser;
     private static createServer;
 }
+type ShardedCollectionDefinition<T> = {
+    name: string;
+} & ShardOptions<T>;
 declare class CollectionManager {
+    shardedCollections: ShardedCollectionDefinition<unknown>[];
     collections: {
         [name: string]: {
-            collection: Collection<unknown>;
-            options: CollectionOptions<unknown>;
+            collection: Collection<unknown> | ShardedCollection<unknown>;
+            options: CollectionOptions<unknown> | ShardedCollectionDefinition<unknown>;
         };
     };
-    getCollection(name: string): Collection<unknown>;
-    getOrCreateCollection(name: string): Collection<unknown>;
-    createCollectionWithOptions(name: string, options?: CollectionOptions<unknown>): Collection<unknown>;
+    constructor(shardedCollections?: ShardedCollectionDefinition<unknown>[]);
+    getCollection(name: string): Collection<unknown> | ShardedCollection<unknown>;
+    getOrCreateCollection(name: string): Collection<unknown> | ShardedCollection<unknown>;
+    createCollectionWithOptions(name: string, options?: CollectionOptions<unknown>): Collection<unknown> | ShardedCollection<unknown>;
 }
 declare class QueryHandler {
     cm: CollectionManager;
-    constructor();
+    constructor(shardedCollections?: ShardedCollectionDefinition<unknown>[]);
     query(payload: QueryPayload): void | unknown[];
 }
 
