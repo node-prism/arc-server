@@ -1,11 +1,12 @@
 {
   "name": "@prsm/arc-server",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "",
   "author": "nvms",
   "type": "module",
   "main": "dist/index.js",
   "license": "ISC",
+  "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
