@@ -33,7 +33,7 @@ declare class ArcServer {
         }>;
     }>;
     static emitter: EventEmitter;
-    static init({ host, port, secure, shardedCollections }: ArcServerOptions): void;
+    static init({ host, port, secure, shardedCollections }: ArcServerOptions): Promise<void>;
     static initializeCollections(): void;
     private static ensureRootUserExists;
     static query(payload: QueryPayload): void | unknown[];

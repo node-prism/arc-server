@@ -45,12 +45,12 @@ export class ArcServer {
   }> = {};
   static emitter: EventEmitter;
 
-  static init({ host = "localhost", port = 3351, secure = false, shardedCollections = [] }: ArcServerOptions) {
+  static async init({ host = "localhost", port = 3351, secure = false, shardedCollections = [] }: ArcServerOptions) {
     this.emitter = new EventEmitter();
     this.queryHandler = new QueryHandler(shardedCollections);
     this.initializeCollections();
     this.ensureRootUserExists();
-    this.createServer(host, port, secure);
+    await this.createServer(host, port, secure);
   }
 
   static initializeCollections() {
@@ -105,12 +105,14 @@ export class ArcServer {
     this.auth.users.remove({ username });
   }
 
-  private static createServer(host: string, port: number, secure = false) {
+  private static async createServer(host: string, port: number, secure = false) {
     this.duplex = new CommandServer({
       host,
       port,
       secure,
     });
+
+    await this.duplex.connect();
 
     // authenticate
     this.duplex.command(0, async (payload: AuthPayload, connection: Connection) => {
